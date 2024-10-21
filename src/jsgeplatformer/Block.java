@@ -4,6 +4,7 @@ import br.com.davidbuzatto.jsge.core.Engine;
 import br.com.davidbuzatto.jsge.geom.Rectangle;
 import br.com.davidbuzatto.jsge.geom.Vector2;
 import br.com.davidbuzatto.jsge.image.Image;
+import br.com.davidbuzatto.jsge.utils.ColorUtils;
 import java.awt.Color;
 
 /**
@@ -27,6 +28,9 @@ public class Block {
     
     public void draw( Engine e ) {
         e.drawImage( image, pos.x, pos.y );
+        if ( color != null ) {
+            e.fillRectangle( pos, dim.x, dim.y, ColorUtils.fade( color, 0.5 ) );
+        }
     }
     
     public Rectangle getBoundingBox() {

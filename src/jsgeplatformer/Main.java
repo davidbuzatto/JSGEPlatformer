@@ -4,6 +4,8 @@ import br.com.davidbuzatto.jsge.core.Camera2D;
 import br.com.davidbuzatto.jsge.core.Engine;
 import br.com.davidbuzatto.jsge.geom.Vector2;
 import br.com.davidbuzatto.jsge.image.Image;
+import br.com.davidbuzatto.jsge.utils.ColorUtils;
+import br.com.davidbuzatto.jsge.utils.ImageUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +30,7 @@ public class Main extends Engine {
 
     }
 
-    public static final double GRAVITY = 50;
+    public static final double GRAVITY = 20;
     public static final double MAX_FALL_SPEED = 400;
     public static final double SPRITE_WIDTH = 32;
 
@@ -49,19 +51,34 @@ public class Main extends Engine {
     @Override
     public void create() {
 
+        List<Image> playerWalkRightImages = new ArrayList<>();
+        playerWalkRightImages.add( loadImage( "resources/images/SmallMario_0.png" ) );
+        playerWalkRightImages.add( loadImage( "resources/images/SmallMario_1.png" ) );
+        Animation playerWalkRight = new Animation( 2, 0.15, playerWalkRightImages );
+        
+        List<Image> playerWalkLeftImages = new ArrayList<>();
+        playerWalkLeftImages.add( ImageUtils.imageFlipHorizontal( playerWalkRightImages.get( 0 ) ) );
+        playerWalkLeftImages.add( ImageUtils.imageFlipHorizontal( playerWalkRightImages.get( 1 ) ) );
+        Animation playerWalkLeft = new Animation( 2, 0.15, playerWalkLeftImages );
+        
         player = new Player(
             new Vector2( getScreenWidth() / 2, getScreenHeight() / 2 ),
-            new Vector2( 32, 32 ),
-            200,
+            new Vector2( 32, 40 ),
+            250,
             400,
-            600,
-            BLUE
+            400,
+            loadSound( "resources/sfx/jump.wav" ),
+            BLUE,
+            playerWalkRight,
+            playerWalkLeft,
+            loadImage( "resources/images/SmallMarioJumping_0.png"),
+            loadImage( "resources/images/SmallMarioJumpingAndRunning_0.png"),
+            loadImage( "resources/images/SmallMarioFalling_0.png")
         );
         
-        String tilesPathT = "resources/images/tile_%c.png";
         tileImages = new HashMap<>();
         for ( char c = 'A'; c <= 'I'; c++ ) {
-            tileImages.put( c, loadImage( String.format( tilesPathT, c ) ) );
+            tileImages.put( c, loadImage( String.format( "resources/images/tile_%c.png", c ) ) );
         }
         
         processMap(
@@ -144,7 +161,7 @@ public class Main extends Engine {
             
             Player.CollisionType ct = player.checkCollision( b );
             
-            switch ( player.checkCollision( b ) ) {
+            switch ( ct ) {
                 case LEFT:
                     player.pos.x = b.pos.x + b.dim.x + player.dim.x / 2;
                     break;
@@ -197,7 +214,7 @@ public class Main extends Engine {
                                 SPRITE_WIDTH,
                                 SPRITE_WIDTH
                             ),
-                            Engine.ORANGE,
+                            null,
                             tileImages.get( c )
                         ));
                         break;
