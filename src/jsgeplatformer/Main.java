@@ -2,12 +2,14 @@ package jsgeplatformer;
 
 import br.com.davidbuzatto.jsge.core.Camera2D;
 import br.com.davidbuzatto.jsge.core.Engine;
+import br.com.davidbuzatto.jsge.geom.Point;
 import br.com.davidbuzatto.jsge.geom.Rectangle;
 import br.com.davidbuzatto.jsge.geom.Vector2;
 import br.com.davidbuzatto.jsge.image.Image;
 import br.com.davidbuzatto.jsge.sound.Music;
 import br.com.davidbuzatto.jsge.sound.Sound;
 import br.com.davidbuzatto.jsge.utils.ImageUtils;
+import br.com.davidbuzatto.jsge.utils.MathUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +45,11 @@ public class Main extends Engine {
     private Animation baseCoinAnimation;
     private Sound coinSound;
     
+    private List<Enemy> enemies;
+    private Animation enemyWalkRight;
+    private Animation enemyWalkLeft;
+    private Sound kickSound;
+    
     private Music music;
     
     private Camera2D camera;
@@ -50,7 +57,8 @@ public class Main extends Engine {
     private double worldHeight;
     
     private Map<Character, Image> tileImages;
-
+    private Image background;
+    
     /**
      * Creates the game world.
      *
@@ -76,7 +84,20 @@ public class Main extends Engine {
         coinImages.add( loadImage( "resources/images/Coin_3.png" ) );
         baseCoinAnimation = new Animation( 4, 0.1, coinImages );
         
+        List<Image> enemyWalkRightImages = new ArrayList<>();
+        enemyWalkRightImages.add( loadImage( "resources/images/Goomba_0.png" ) );
+        enemyWalkRightImages.add( loadImage( "resources/images/Goomba_1.png" ) );
+        enemyWalkRight = new Animation( 2, 0.15, enemyWalkRightImages );
+        
+        List<Image> enemyWalkLeftImages = new ArrayList<>();
+        enemyWalkLeftImages.add( ImageUtils.imageFlipHorizontal( enemyWalkRightImages.get( 0 ) ) );
+        enemyWalkLeftImages.add( ImageUtils.imageFlipHorizontal( enemyWalkRightImages.get( 1 ) ) );
+        enemyWalkLeft = new Animation( 2, 0.15, enemyWalkLeftImages );
+        
+        background = loadImage( "resources/images/background1.png" );
+        
         coinSound = loadSound( "resources/sfx/coin.wav" );
+        kickSound = loadSound( "resources/sfx/kick.wav" );
         music = loadMusic( "resources/musics/music1.mp3" );
         music.play();
         
@@ -118,7 +139,7 @@ public class Main extends Engine {
             D                                   EBBBBBBF                   C
             D    P       IIIII                  CAAAAAAD                   C
             D                                EBBGAAAAAAD                   C
-            D      o o o o o o o o o         CAAAAAAAAAD                   C
+            D      o o o o o    e  e  e      CAAAAAAAAAD                   C
             HBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBGAAAAAAAAAHBBBBBBBBBBBBBBBBBBBG
             AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
             """
@@ -150,6 +171,17 @@ public class Main extends Engine {
         }
         resolveCollisionPlayerCoins();
         
+        for ( Enemy e : enemies ) {
+            e.update( delta, this );
+        }
+        resolveCollisionEnemiesBlocks();
+        
+        resolveCollisionPlayerEnemies();
+        
+        if ( music.isStopped() ) {
+            music.play();
+        }
+        
         updateCamera();
 
     }
@@ -168,6 +200,11 @@ public class Main extends Engine {
 
         beginMode2D( camera );
         
+        int backTimes = (int) ( worldWidth / background.getWidth() + 1 );
+        for ( int i = 0; i < backTimes; i++ ) {
+            drawImage( background, i * background.getWidth(), worldHeight - background.getHeight(), SKYBLUE );
+        }
+        
         for ( Block b : blocks ) {
             b.draw( this );
         }
@@ -176,10 +213,14 @@ public class Main extends Engine {
             c.draw( this );
         }
         
+        for ( Enemy e : enemies ) {
+            e.draw( this );
+        }
+        
         player.draw( this );
         
         endMode2D();
-
+        
         drawFPS( 20, 20 );
 
     }
@@ -213,6 +254,70 @@ public class Main extends Engine {
         
     }
     
+    private void resolveCollisionPlayerEnemies() {
+        
+        for ( Enemy e : enemies ) {
+            
+            if ( !e.dead ) {
+                
+                Player.CollisionType ct = player.checkCollision( e );
+
+                switch ( ct ) {
+                    case LEFT:
+                        break;
+                    case RIGHT:
+                        break;
+                    case UP:
+                        break;
+                    case DOWN:
+                        player.pos.y = e.pos.y - e.dim.y / 2 - player.dim.y / 2;
+                        player.jump( true );
+                        e.kill();
+                        player.updateCollisionProbes();
+                        break;
+                }
+                
+            }
+            
+        }
+        
+    }
+    
+    private void resolveCollisionEnemiesBlocks() {
+        
+        for ( Enemy e : enemies ) {
+            
+            for ( Block b : blocks ) {
+
+                Enemy.CollisionType ct = e.checkCollision( b );
+
+                switch ( ct ) {
+                    case LEFT:
+                        e.pos.x = b.pos.x + b.dim.x + e.dim.x / 2;
+                        e.turn();
+                        break;
+                    case RIGHT:
+                        e.pos.x = b.pos.x - e.dim.x / 2;
+                        e.turn();
+                        break;
+                    case UP:
+                        e.pos.y = b.pos.y + b.dim.y + e.dim.y / 2;
+                        e.vel.y = 0;
+                        break;
+                    case DOWN:
+                        e.pos.y = b.pos.y - e.dim.y / 2;
+                        e.setOnGround();
+                        break;
+                }
+
+                e.updateCollisionProbes();
+
+            }
+            
+        }
+        
+    }
+    
     private void resolveCollisionPlayerCoins() {
         
         for ( Coin c : coins ) {
@@ -229,6 +334,7 @@ public class Main extends Engine {
 
         blocks = new ArrayList<>();
         coins = new ArrayList<>();
+        enemies = new ArrayList<>();
 
         int line = 0;
         int column = 0;
@@ -269,6 +375,22 @@ public class Main extends Engine {
                             ),
                             baseCoinAnimation.copy(),
                             coinSound
+                        ));
+                        break;
+                    case 'e':
+                        enemies.add( new Enemy( 
+                            new Vector2(
+                                column * SPRITE_WIDTH,
+                                line * SPRITE_WIDTH
+                            ),
+                            new Vector2(
+                                SPRITE_WIDTH,
+                                SPRITE_WIDTH
+                            ),
+                            150, RED,
+                            enemyWalkRight.copy(),
+                            enemyWalkLeft.copy(),
+                            kickSound
                         ));
                         break;
                     case 'P':

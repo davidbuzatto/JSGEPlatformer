@@ -144,12 +144,7 @@ public class Player {
         }
         
         if ( e.isKeyPressed( Engine.KEY_SPACE ) && jumps < MAX_JUMPS ) {
-            vel.y = -jumpSpeed;
-            jumps++;
-            state = State.JUMPING;
-            jumpSound.play();
-            walkRightAnimation.reset();
-            walkLeftAnimation.reset();
+            jump( false );
         }
         
         pos.x += vel.x * delta;
@@ -270,6 +265,36 @@ public class Player {
         
         return CollisionType.NONE;
         
+    }
+    
+    public CollisionType checkCollision( Enemy enemy ) {
+        
+        Rectangle blockBB = enemy.getBoundingBox();
+        
+        if ( CollisionUtils.checkCollisionRectangles( cpUp, blockBB ) ) {
+            return CollisionType.UP;
+        } else if ( CollisionUtils.checkCollisionRectangles( cpDown, blockBB ) ) {
+            return CollisionType.DOWN;
+        } else if ( CollisionUtils.checkCollisionRectangles( cpLeft, blockBB ) ) {
+            return CollisionType.LEFT;
+        } else if ( CollisionUtils.checkCollisionRectangles( cpRight, blockBB ) ) {
+            return CollisionType.RIGHT;
+        }
+        
+        return CollisionType.NONE;
+        
+    }
+    
+    public void jump( boolean reset ) {
+        if ( reset ) {
+            jumps = 0;
+        }
+        vel.y = -jumpSpeed;
+        jumps++;
+        state = State.JUMPING;
+        jumpSound.play();
+        walkRightAnimation.reset();
+        walkLeftAnimation.reset();
     }
     
     public boolean checkCollision( Coin coin ) {
