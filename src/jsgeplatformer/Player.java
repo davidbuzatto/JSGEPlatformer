@@ -147,7 +147,7 @@ public class Player {
             vel.y = -jumpSpeed;
             jumps++;
             state = State.JUMPING;
-            //jumpSound.play();
+            jumpSound.play();
             walkRightAnimation.reset();
             walkLeftAnimation.reset();
         }
@@ -270,6 +270,10 @@ public class Player {
         
         return CollisionType.NONE;
         
+    }
+    
+    public boolean checkCollision( Coin coin ) {
+        return CollisionUtils.checkCollisionRectangles( getBoundingBox(), coin.rect );
     }
     
 }

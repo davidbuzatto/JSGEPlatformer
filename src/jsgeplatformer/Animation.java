@@ -43,4 +43,8 @@ public class Animation {
         }
     }
     
+    public Animation copy() {
+        return new Animation( totalFrames, timeToNextFrame, images );
+    }
+    
 }

@@ -2,9 +2,11 @@ package jsgeplatformer;
 
 import br.com.davidbuzatto.jsge.core.Camera2D;
 import br.com.davidbuzatto.jsge.core.Engine;
+import br.com.davidbuzatto.jsge.geom.Rectangle;
 import br.com.davidbuzatto.jsge.geom.Vector2;
 import br.com.davidbuzatto.jsge.image.Image;
-import br.com.davidbuzatto.jsge.utils.ColorUtils;
+import br.com.davidbuzatto.jsge.sound.Music;
+import br.com.davidbuzatto.jsge.sound.Sound;
 import br.com.davidbuzatto.jsge.utils.ImageUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +39,12 @@ public class Main extends Engine {
     private Player player;
     private List<Block> blocks;
     
+    private List<Coin> coins;
+    private Animation baseCoinAnimation;
+    private Sound coinSound;
+    
+    private Music music;
+    
     private Camera2D camera;
     private double worldWidth;
     private double worldHeight;
@@ -60,6 +68,17 @@ public class Main extends Engine {
         playerWalkLeftImages.add( ImageUtils.imageFlipHorizontal( playerWalkRightImages.get( 0 ) ) );
         playerWalkLeftImages.add( ImageUtils.imageFlipHorizontal( playerWalkRightImages.get( 1 ) ) );
         Animation playerWalkLeft = new Animation( 2, 0.15, playerWalkLeftImages );
+        
+        List<Image> coinImages = new ArrayList<>();
+        coinImages.add( loadImage( "resources/images/Coin_0.png" ) );
+        coinImages.add( loadImage( "resources/images/Coin_1.png" ) );
+        coinImages.add( loadImage( "resources/images/Coin_2.png" ) );
+        coinImages.add( loadImage( "resources/images/Coin_3.png" ) );
+        baseCoinAnimation = new Animation( 4, 0.1, coinImages );
+        
+        coinSound = loadSound( "resources/sfx/coin.wav" );
+        music = loadMusic( "resources/musics/music1.mp3" );
+        music.play();
         
         player = new Player(
             new Vector2( getScreenWidth() / 2, getScreenHeight() / 2 ),
@@ -97,9 +116,9 @@ public class Main extends Engine {
             D                IIIII                                         C
             D                                                              C
             D                                   EBBBBBBF                   C
-            D            IIIII                  CAAAAAAD                   C
-            D                          P     EBBGAAAAAAD                   C
-            D                                CAAAAAAAAAD                   C
+            D    P       IIIII                  CAAAAAAD                   C
+            D                                EBBGAAAAAAD                   C
+            D      o o o o o o o o o         CAAAAAAAAAD                   C
             HBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBGAAAAAAAAAHBBBBBBBBBBBBBBBBBBBG
             AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
             """
@@ -126,6 +145,11 @@ public class Main extends Engine {
         player.update( delta, this );
         resolveCollisionPlayerBlocks();
         
+        for ( Coin c : coins ) {
+            c.update( delta );
+        }
+        resolveCollisionPlayerCoins();
+        
         updateCamera();
 
     }
@@ -147,6 +171,11 @@ public class Main extends Engine {
         for ( Block b : blocks ) {
             b.draw( this );
         }
+        
+        for ( Coin c : coins ) {
+            c.draw( this );
+        }
+        
         player.draw( this );
         
         endMode2D();
@@ -184,9 +213,22 @@ public class Main extends Engine {
         
     }
     
+    private void resolveCollisionPlayerCoins() {
+        
+        for ( Coin c : coins ) {
+            if ( !c.collected ) {
+                if ( player.checkCollision( c ) ) {
+                    c.collect();
+                }
+            }
+        }
+        
+    }
+    
     private void processMap( String map ) {
 
         blocks = new ArrayList<>();
+        coins = new ArrayList<>();
 
         int line = 0;
         int column = 0;
@@ -216,6 +258,17 @@ public class Main extends Engine {
                             ),
                             null,
                             tileImages.get( c )
+                        ));
+                        break;
+                    case 'o':
+                        coins.add( new Coin( 
+                            new Rectangle(
+                                column * SPRITE_WIDTH,
+                                line * SPRITE_WIDTH,
+                                24, 32
+                            ),
+                            baseCoinAnimation.copy(),
+                            coinSound
                         ));
                         break;
                     case 'P':
