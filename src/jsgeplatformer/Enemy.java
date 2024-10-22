@@ -35,19 +35,19 @@ public class Enemy {
         ALL
     }
     
-    public Vector2 pos;
-    public Vector2 prevPos;
-    public Vector2 dim;
+    public Rectangle rect;
     public Vector2 vel;
+    private Vector2 prevPos;
+    
     public double walkSpeed;
+    
     public Color color;
     public State state;
     public Direction direction;
+    public boolean dead;
     
     private Animation walkRightAnimation;
     private Animation walkLeftAnimation;
-    
-    public boolean dead;
     
     private Sound sound;
     
@@ -55,15 +55,12 @@ public class Enemy {
     private Rectangle cpRight;
     private Rectangle cpUp;
     private Rectangle cpDown;
-    
-    boolean running;
 
-    public Enemy( Vector2 pos, Vector2 dim, double walkSpeed, Color color, 
+    public Enemy( Rectangle rect, double walkSpeed, Color color, 
                    Animation walkRightAnimation, Animation walkLeftAnimation, Sound sound ) {
         
-        this.pos = pos;
+        this.rect = rect;
         this.prevPos = new Vector2();
-        this.dim = dim;
         this.vel = new Vector2();
         this.walkSpeed = walkSpeed;
         this.color = color;
@@ -94,8 +91,8 @@ public class Enemy {
             walkRightAnimation.update( delta );
         }
         
-        pos.x += vel.x * delta;
-        pos.y += vel.y * delta;
+        rect.x += vel.x * delta;
+        rect.y += vel.y * delta;
         
         vel.y += Main.GRAVITY;
         
@@ -104,14 +101,15 @@ public class Enemy {
         }
         
         if ( state != State.ON_GROUND ) {
-            if ( prevPos.y < pos.y ) {
+            if ( prevPos.y < rect.y ) {
                 state = State.FALLING;
             }
         }
         
         updateCollisionProbes();
-        prevPos.x = pos.x;
-        prevPos.y = pos.y;
+        
+        prevPos.x = rect.x;
+        prevPos.y = rect.y;
         
     }
     
@@ -127,7 +125,7 @@ public class Enemy {
                 currentImage = walkRightAnimation.getFrameImage();
             }
 
-            e.drawImage( currentImage, pos.x - dim.x / 2, pos.y - dim.y / 2 );
+            e.drawImage( currentImage, rect.x - rect.width / 2, rect.y - rect.height / 2 );
 
             /*cpLeft.fill( e, Engine.RED );
             cpRight.fill( e, Engine.GREEN );
@@ -140,17 +138,17 @@ public class Enemy {
     
     public void updateCollisionProbes() {
         
-        cpLeft.x = pos.x - dim.x / 2;
-        cpLeft.y = pos.y - cpLeft.height / 2;
+        cpLeft.x = rect.x - rect.width / 2;
+        cpLeft.y = rect.y - cpLeft.height / 2;
         
-        cpRight.x = pos.x + dim.x / 2 - cpRight.width;
-        cpRight.y = pos.y - cpRight.height / 2;
+        cpRight.x = rect.x + rect.width / 2 - cpRight.width;
+        cpRight.y = rect.y - cpRight.height / 2;
         
-        cpUp.x = pos.x - cpUp.width / 2;
-        cpUp.y = pos.y - dim.y / 2;
+        cpUp.x = rect.x - cpUp.width / 2;
+        cpUp.y = rect.y - rect.height / 2;
         
-        cpDown.x = pos.x - cpDown.width / 2;
-        cpDown.y = pos.y + dim.y / 2 - cpDown.height;
+        cpDown.x = rect.x - cpDown.width / 2;
+        cpDown.y = rect.y + rect.height / 2 - cpDown.height;
         
     }
     
@@ -160,7 +158,7 @@ public class Enemy {
     }
     
     public Rectangle getBoundingBox() {
-        return new Rectangle( pos.x - dim.x / 2, pos.y - dim.y / 2, dim.x, dim.y );
+        return rect;
     }
     
     public CollisionType checkCollision( Block block ) {

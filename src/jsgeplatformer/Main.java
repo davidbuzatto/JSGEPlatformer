@@ -2,14 +2,11 @@ package jsgeplatformer;
 
 import br.com.davidbuzatto.jsge.core.Camera2D;
 import br.com.davidbuzatto.jsge.core.Engine;
-import br.com.davidbuzatto.jsge.geom.Point;
 import br.com.davidbuzatto.jsge.geom.Rectangle;
-import br.com.davidbuzatto.jsge.geom.Vector2;
 import br.com.davidbuzatto.jsge.image.Image;
 import br.com.davidbuzatto.jsge.sound.Music;
 import br.com.davidbuzatto.jsge.sound.Sound;
 import br.com.davidbuzatto.jsge.utils.ImageUtils;
-import br.com.davidbuzatto.jsge.utils.MathUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,15 +20,7 @@ import java.util.Map;
 public class Main extends Engine {
 
     public Main() {
-
-        super(
-            800, // width
-            448, // height
-            "JSGE Platformer", // title
-            60, // target FPS
-            false // antialiasing
-        );
-
+        super( 800, 448, "JSGE Platformer", 60, false );
     }
 
     public static final double GRAVITY = 20;
@@ -58,6 +47,7 @@ public class Main extends Engine {
     
     private Map<Character, Image> tileImages;
     private Image background;
+    private int backgroundTimes;
     
     /**
      * Creates the game world.
@@ -102,8 +92,10 @@ public class Main extends Engine {
         music.play();
         
         player = new Player(
-            new Vector2( getScreenWidth() / 2, getScreenHeight() / 2 ),
-            new Vector2( 32, 40 ),
+            new Rectangle( 
+                getScreenWidth() / 2, getScreenHeight() / 2,
+                32, 40
+            ),
             250,
             400,
             400,
@@ -145,6 +137,8 @@ public class Main extends Engine {
             """
         );
         
+        backgroundTimes = (int) ( worldWidth / background.getWidth() + 1 );
+        
         camera = new Camera2D();
         camera.offset.x = getScreenWidth() / 2;
         camera.offset.y = getScreenHeight() / 2;
@@ -164,18 +158,18 @@ public class Main extends Engine {
         double delta = getFrameTime();
 
         player.update( delta, this );
-        resolveCollisionPlayerBlocks();
         
         for ( Coin c : coins ) {
             c.update( delta );
         }
-        resolveCollisionPlayerCoins();
         
         for ( Enemy e : enemies ) {
             e.update( delta, this );
         }
-        resolveCollisionEnemiesBlocks();
         
+        resolveCollisionPlayerBlocks();
+        resolveCollisionPlayerCoins();
+        resolveCollisionEnemiesBlocks();
         resolveCollisionPlayerEnemies();
         
         if ( music.isStopped() ) {
@@ -200,8 +194,7 @@ public class Main extends Engine {
 
         beginMode2D( camera );
         
-        int backTimes = (int) ( worldWidth / background.getWidth() + 1 );
-        for ( int i = 0; i < backTimes; i++ ) {
+        for ( int i = 0; i < backgroundTimes; i++ ) {
             drawImage( background, i * background.getWidth(), worldHeight - background.getHeight(), SKYBLUE );
         }
         
@@ -233,17 +226,17 @@ public class Main extends Engine {
             
             switch ( ct ) {
                 case LEFT:
-                    player.pos.x = b.pos.x + b.dim.x + player.dim.x / 2;
+                    player.rect.x = b.rect.x + b.rect.width + player.rect.width / 2;
                     break;
                 case RIGHT:
-                    player.pos.x = b.pos.x - player.dim.x / 2;
+                    player.rect.x = b.rect.x - player.rect.width / 2;
                     break;
                 case UP:
-                    player.pos.y = b.pos.y + b.dim.y + player.dim.y / 2;
+                    player.rect.y = b.rect.y + b.rect.height + player.rect.height / 2;
                     player.vel.y = 0;
                     break;
                 case DOWN:
-                    player.pos.y = b.pos.y - player.dim.y / 2;
+                    player.rect.y = b.rect.y - player.rect.height / 2;
                     player.setOnGround();
                     break;
             }
@@ -270,10 +263,10 @@ public class Main extends Engine {
                     case UP:
                         break;
                     case DOWN:
-                        player.pos.y = e.pos.y - e.dim.y / 2 - player.dim.y / 2;
+                        player.rect.y = e.rect.y - e.rect.height / 2 - player.rect.height / 2;
                         player.jump( true );
-                        e.kill();
                         player.updateCollisionProbes();
+                        e.kill();
                         break;
                 }
                 
@@ -293,19 +286,19 @@ public class Main extends Engine {
 
                 switch ( ct ) {
                     case LEFT:
-                        e.pos.x = b.pos.x + b.dim.x + e.dim.x / 2;
+                        e.rect.x = b.rect.x + b.rect.width + e.rect.width / 2;
                         e.turn();
                         break;
                     case RIGHT:
-                        e.pos.x = b.pos.x - e.dim.x / 2;
+                        e.rect.x = b.rect.x - e.rect.width / 2;
                         e.turn();
                         break;
                     case UP:
-                        e.pos.y = b.pos.y + b.dim.y + e.dim.y / 2;
+                        e.rect.y = b.rect.y + b.rect.height + e.rect.height / 2;
                         e.vel.y = 0;
                         break;
                     case DOWN:
-                        e.pos.y = b.pos.y - e.dim.y / 2;
+                        e.rect.y = b.rect.y - e.rect.height / 2;
                         e.setOnGround();
                         break;
                 }
@@ -354,11 +347,9 @@ public class Main extends Engine {
                     case 'H':
                     case 'I':
                         blocks.add( new Block(
-                            new Vector2( 
+                            new Rectangle( 
                                 column * SPRITE_WIDTH,
-                                line * SPRITE_WIDTH
-                            ),
-                            new Vector2(
+                                line * SPRITE_WIDTH,
                                 SPRITE_WIDTH,
                                 SPRITE_WIDTH
                             ),
@@ -379,11 +370,9 @@ public class Main extends Engine {
                         break;
                     case 'e':
                         enemies.add( new Enemy( 
-                            new Vector2(
+                            new Rectangle(
                                 column * SPRITE_WIDTH,
-                                line * SPRITE_WIDTH
-                            ),
-                            new Vector2(
+                                line * SPRITE_WIDTH,
                                 SPRITE_WIDTH,
                                 SPRITE_WIDTH
                             ),
@@ -394,10 +383,8 @@ public class Main extends Engine {
                         ));
                         break;
                     case 'P':
-                        player.pos = new Vector2( 
-                            column * SPRITE_WIDTH, 
-                            line * SPRITE_WIDTH
-                        );
+                        player.rect.x = column * SPRITE_WIDTH;
+                        player.rect.y = line * SPRITE_WIDTH;
                         break;
                 }
                 
@@ -421,20 +408,20 @@ public class Main extends Engine {
     
     private void updateCamera() {
         
-        if ( player.pos.x <= getScreenWidth() / 2 ) {
+        if ( player.rect.x <= getScreenWidth() / 2 ) {
             camera.target.x = getScreenWidth() / 2;
-        } else if ( player.pos.x >= worldWidth - getScreenWidth() / 2 ) {
+        } else if ( player.rect.x >= worldWidth - getScreenWidth() / 2 ) {
             camera.target.x = worldWidth - getScreenWidth() / 2 ;
         } else {
-            camera.target.x = player.pos.x;
+            camera.target.x = player.rect.x;
         }
         
-        if ( player.pos.y <= getScreenHeight() / 2 ) {
+        if ( player.rect.y <= getScreenHeight() / 2 ) {
             camera.target.y = getScreenHeight() / 2;
-        } else if ( player.pos.y >= worldHeight - getScreenHeight() / 2 ) {
+        } else if ( player.rect.y >= worldHeight - getScreenHeight() / 2 ) {
             camera.target.y = worldHeight - getScreenHeight() / 2 ;
         } else {
-            camera.target.y = player.pos.y;
+            camera.target.y = player.rect.y;
         }
         
     }

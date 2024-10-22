@@ -36,23 +36,25 @@ public class Player {
         ALL
     }
     
-    public Vector2 pos;
-    public Vector2 prevPos;
-    public Vector2 dim;
+    private static final int MAX_JUMPS = 2;
+    
+    public Rectangle rect;
     public Vector2 vel;
+    private Vector2 prevPos;
+    
     public double walkSpeed;
     public double runSpeed;
     public double jumpSpeed;
-    public Color color;
-    public State state;
-    public Direction direction;
-    
     private int jumps;
-    private static final int MAX_JUMPS = 2;
+    
+    private Color color;
+    private State state;
+    private Direction direction;
+    private boolean running;
+    private boolean idle;
     
     private Animation walkRightAnimation;
     private Animation walkLeftAnimation;
-    
     private Image jumpRightImage;
     private Image jumpLeftImage;
     private Image jumpRunningRightImage;
@@ -67,31 +69,30 @@ public class Player {
     private Rectangle cpUp;
     private Rectangle cpDown;
     
-    boolean running;
-    boolean idle = true;
-
-    public Player( Vector2 pos, Vector2 dim, double walkSpeed, double runSpeed, 
+    public Player( Rectangle rect, double walkSpeed, double runSpeed, 
                    double jumpSpeed, Sound jumpSound, Color color, 
                    Animation walkRightAnimation, Animation walkLeftAnimation,
                    Image jumpRightImage, Image jumpRunningRightImage, Image fallingRightImage ) {
         
-        this.pos = pos;
+        this.rect = rect;
         this.prevPos = new Vector2();
-        this.dim = dim;
         this.vel = new Vector2();
+        
         this.walkSpeed = walkSpeed;
         this.runSpeed = runSpeed;
         this.jumpSpeed = jumpSpeed;
+        
         this.color = color;
         this.state = State.FALLING;
         this.direction = Direction.RIGHT;
+        this.idle = true;
+        
         this.jumps = 0;
         
         this.jumpSound = jumpSound;
         
         this.walkRightAnimation = walkRightAnimation;
         this.walkLeftAnimation = walkLeftAnimation;
-        
         this.jumpRightImage = jumpRightImage;
         this.jumpLeftImage = ImageUtils.imageFlipHorizontal( jumpRightImage );
         this.jumpRunningRightImage = jumpRunningRightImage;
@@ -99,10 +100,10 @@ public class Player {
         this.fallingRightImage = fallingRightImage;
         this.fallingLeftImage = ImageUtils.imageFlipHorizontal( fallingRightImage );
         
-        cpLeft = new Rectangle( 0, 0, 6, 20 );
-        cpRight = new Rectangle( 0, 0, 6, 20 );
-        cpUp = new Rectangle( 0, 0, 12, 6 );
-        cpDown = new Rectangle( 0, 0, 12, 6 );
+        this.cpLeft = new Rectangle( 0, 0, 6, 20 );
+        this.cpRight = new Rectangle( 0, 0, 6, 20 );
+        this.cpUp = new Rectangle( 0, 0, 12, 6 );
+        this.cpDown = new Rectangle( 0, 0, 12, 6 );
         
     }
     
@@ -147,8 +148,8 @@ public class Player {
             jump( false );
         }
         
-        pos.x += vel.x * delta;
-        pos.y += vel.y * delta;
+        rect.x += vel.x * delta;
+        rect.y += vel.y * delta;
         
         vel.y += Main.GRAVITY;
         
@@ -157,16 +158,17 @@ public class Player {
         }
         
         if ( state != State.ON_GROUND ) {
-            if ( prevPos.y < pos.y ) {
+            if ( prevPos.y < rect.y ) {
                 state = State.FALLING;
-            } else if ( prevPos.y > pos.y ) {
+            } else if ( prevPos.y > rect.y ) {
                 state = State.JUMPING;
             }
         }
         
         updateCollisionProbes();
-        prevPos.x = pos.x;
-        prevPos.y = pos.y;
+        
+        prevPos.x = rect.x;
+        prevPos.y = rect.y;
         
     }
     
@@ -211,10 +213,10 @@ public class Player {
             }
         }
         
-        e.drawImage( currentImage, pos.x - dim.x / 2, pos.y - dim.y / 2 );
+        e.drawImage( currentImage, rect.x - rect.width / 2, rect.y - rect.height / 2 );
         
-        /*e.fillRectangle( pos.x - dim.x / 2, pos.y - dim.y / 2, dim.x, dim.y, color );
-        e.drawRectangle( pos.x - dim.x / 2, pos.y - dim.y / 2, dim.x, dim.y, Engine.BLACK );*/
+        /*e.fillRectangle( rect.x - rect.width / 2, rect.y - rect.height / 2, rect.width, rect.height, color );
+        e.drawRectangle( rect.x - rect.width / 2, rect.y - rect.height / 2, rect.width, rect.height, Engine.BLACK );*/
         
         /*cpLeft.fill( e, Engine.RED );
         cpRight.fill( e, Engine.GREEN );
@@ -225,17 +227,17 @@ public class Player {
     
     public void updateCollisionProbes() {
         
-        cpLeft.x = pos.x - dim.x / 2;
-        cpLeft.y = pos.y - cpLeft.height / 2;
+        cpLeft.x = rect.x - rect.width / 2;
+        cpLeft.y = rect.y - cpLeft.height / 2;
         
-        cpRight.x = pos.x + dim.x / 2 - cpRight.width;
-        cpRight.y = pos.y - cpRight.height / 2;
+        cpRight.x = rect.x + rect.width / 2 - cpRight.width;
+        cpRight.y = rect.y - cpRight.height / 2;
         
-        cpUp.x = pos.x - cpUp.width / 2;
-        cpUp.y = pos.y - dim.y / 2;
+        cpUp.x = rect.x - cpUp.width / 2;
+        cpUp.y = rect.y - rect.height / 2;
         
-        cpDown.x = pos.x - cpDown.width / 2;
-        cpDown.y = pos.y + dim.y / 2 - cpDown.height;
+        cpDown.x = rect.x - cpDown.width / 2;
+        cpDown.y = rect.y + rect.height / 2 - cpDown.height;
         
     }
     
@@ -246,7 +248,7 @@ public class Player {
     }
     
     public Rectangle getBoundingBox() {
-        return new Rectangle( pos.x - dim.x / 2, pos.y - dim.y / 2, dim.x, dim.y );
+        return rect;
     }
     
     public CollisionType checkCollision( Block block ) {
