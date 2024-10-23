@@ -190,7 +190,6 @@ public class Main extends Engine {
 
         clearBackground( WHITE );
         setFontSize( 20 );
-        setFontStyle( FONT_BOLD );
 
         beginMode2D( camera );
         
