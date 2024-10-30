@@ -1,6 +1,6 @@
 package jsgeplatformer;
 
-import br.com.davidbuzatto.jsge.core.Engine;
+import br.com.davidbuzatto.jsge.core.engine.EngineFrame;
 import br.com.davidbuzatto.jsge.geom.Rectangle;
 import br.com.davidbuzatto.jsge.sound.Sound;
 
@@ -25,7 +25,7 @@ public class Coin {
         animation.update( delta );
     }
     
-    public void draw( Engine e ) {
+    public void draw( EngineFrame e ) {
         if ( !collected ) {
             e.drawImage( animation.getFrameImage(), rect.x, rect.y );
         }

@@ -1,12 +1,12 @@
 package jsgeplatformer;
 
-import br.com.davidbuzatto.jsge.core.Engine;
+import br.com.davidbuzatto.jsge.core.engine.EngineFrame;
 import br.com.davidbuzatto.jsge.geom.Rectangle;
-import br.com.davidbuzatto.jsge.geom.Vector2;
 import br.com.davidbuzatto.jsge.image.Image;
+import br.com.davidbuzatto.jsge.image.ImageUtils;
+import br.com.davidbuzatto.jsge.math.CollisionUtils;
+import br.com.davidbuzatto.jsge.math.Vector2;
 import br.com.davidbuzatto.jsge.sound.Sound;
-import br.com.davidbuzatto.jsge.utils.CollisionUtils;
-import br.com.davidbuzatto.jsge.utils.ImageUtils;
 import java.awt.Color;
 
 /**
@@ -107,11 +107,11 @@ public class Player {
         
     }
     
-    public void update( double delta, Engine e ) {
+    public void update( double delta, EngineFrame e ) {
         
         double speed;
         
-        if ( e.isKeyDown( Engine.KEY_CONTROL ) ) {
+        if ( e.isKeyDown( EngineFrame.KEY_CONTROL ) ) {
             speed = runSpeed;
             running = true;
         } else {
@@ -119,7 +119,7 @@ public class Player {
             running = false;
         }
         
-        if ( e.isKeyDown( Engine.KEY_LEFT ) ) {
+        if ( e.isKeyDown( EngineFrame.KEY_LEFT ) ) {
             vel.x = -speed;
             idle = false;
             direction = Direction.LEFT;
@@ -129,7 +129,7 @@ public class Player {
             } else {
                 walkLeftAnimation.update( delta );
             }
-        } else if ( e.isKeyDown( Engine.KEY_RIGHT ) ) {
+        } else if ( e.isKeyDown( EngineFrame.KEY_RIGHT ) ) {
             vel.x = speed;
             idle = false;
             direction = Direction.RIGHT;
@@ -144,7 +144,7 @@ public class Player {
             idle = true;
         }
         
-        if ( e.isKeyPressed( Engine.KEY_SPACE ) && jumps < MAX_JUMPS ) {
+        if ( e.isKeyPressed( EngineFrame.KEY_SPACE ) && jumps < MAX_JUMPS ) {
             jump( false );
         }
         
@@ -172,7 +172,7 @@ public class Player {
         
     }
     
-    public void draw( Engine e ) {
+    public void draw( EngineFrame e ) {
         
         Image currentImage;
         

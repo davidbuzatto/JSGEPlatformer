@@ -1,12 +1,12 @@
 package jsgeplatformer;
 
 import br.com.davidbuzatto.jsge.core.Camera2D;
-import br.com.davidbuzatto.jsge.core.Engine;
+import br.com.davidbuzatto.jsge.core.engine.EngineFrame;
 import br.com.davidbuzatto.jsge.geom.Rectangle;
 import br.com.davidbuzatto.jsge.image.Image;
+import br.com.davidbuzatto.jsge.image.ImageUtils;
 import br.com.davidbuzatto.jsge.sound.Music;
 import br.com.davidbuzatto.jsge.sound.Sound;
-import br.com.davidbuzatto.jsge.utils.ImageUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.Map;
  *
  * @author Prof. Dr. David Buzatto
  */
-public class Main extends Engine {
+public class Main extends EngineFrame {
 
     public Main() {
         super( 800, 448, "JSGE Platformer", 60, false );

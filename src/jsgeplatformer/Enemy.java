@@ -1,11 +1,11 @@
 package jsgeplatformer;
 
-import br.com.davidbuzatto.jsge.core.Engine;
+import br.com.davidbuzatto.jsge.core.engine.EngineFrame;
 import br.com.davidbuzatto.jsge.geom.Rectangle;
-import br.com.davidbuzatto.jsge.geom.Vector2;
 import br.com.davidbuzatto.jsge.image.Image;
+import br.com.davidbuzatto.jsge.math.CollisionUtils;
+import br.com.davidbuzatto.jsge.math.Vector2;
 import br.com.davidbuzatto.jsge.sound.Sound;
-import br.com.davidbuzatto.jsge.utils.CollisionUtils;
 import java.awt.Color;
 
 /**
@@ -79,7 +79,7 @@ public class Enemy {
         
     }
     
-    public void update( double delta, Engine e ) {
+    public void update( double delta, EngineFrame e ) {
         
         if ( direction == Direction.LEFT ) {
             vel.x = -walkSpeed;
@@ -113,7 +113,7 @@ public class Enemy {
         
     }
     
-    public void draw( Engine e ) {
+    public void draw( EngineFrame e ) {
         
         if ( !dead ) {
             

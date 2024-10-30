@@ -1,9 +1,9 @@
 package jsgeplatformer;
 
-import br.com.davidbuzatto.jsge.core.Engine;
+import br.com.davidbuzatto.jsge.core.engine.EngineFrame;
+import br.com.davidbuzatto.jsge.core.utils.ColorUtils;
 import br.com.davidbuzatto.jsge.geom.Rectangle;
 import br.com.davidbuzatto.jsge.image.Image;
-import br.com.davidbuzatto.jsge.utils.ColorUtils;
 import java.awt.Color;
 
 /**
@@ -23,7 +23,7 @@ public class Block {
         this.image = image;
     }
     
-    public void draw( Engine e ) {
+    public void draw( EngineFrame e ) {
         e.drawImage( image, rect.x, rect.y );
         if ( color != null ) {
             e.fillRectangle( rect, ColorUtils.fade( color, 0.5 ) );
